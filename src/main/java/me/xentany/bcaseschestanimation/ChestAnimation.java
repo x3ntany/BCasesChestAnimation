@@ -135,18 +135,18 @@ public final class ChestAnimation extends AbstractAnimation {
 
   @Override
   public void onInteract(final @NotNull PlayerInteractEvent event) {
-    if (this.waitClick) {
-      var block = event.getClickedBlock();
+    var block = event.getClickedBlock();
 
-      if (block == null) {
-        return;
-      }
+    if (block == null) {
+      return;
+    }
 
-      var position = new Vec3i(block);
+    var position = new Vec3i(block);
 
-      if (this.placedChestPositions.contains(position)) {
-        event.setCancelled(true);
+    if (this.placedChestPositions.contains(position)) {
+      event.setCancelled(true);
 
+      if (waitClick) {
         this.selectedChestPosition = position;
         this.waitClick = false;
         this.update();
