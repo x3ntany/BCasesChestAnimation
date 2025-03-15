@@ -1,0 +1,4 @@
+name: BCasesChestAnimation
+version: '${project.version}'
+main: me.xentany.bcaseschestanimation.BCasesChestAnimation
+author: x3ntany

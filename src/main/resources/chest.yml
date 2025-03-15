@@ -1,0 +1,46 @@
+provider: xcommunity:chest
+id: chest
+
+settings:
+  subtitle: '&cВыбери сундук!'
+  chests:
+    - offset:
+        x: 1
+        y: 0
+        z: 3
+      block-data: "chest[facing=north]"
+    - offset:
+        x: -1
+        y: 0
+        z: 3
+      block-data: "chest[facing=north]"
+    - offset:
+        x: -3
+        y: 0
+        z: 1
+      block-data: "chest[facing=east]"
+    - offset:
+        x: -3
+        y: 0
+        z: -1
+      block-data: "chest[facing=east]"
+    - offset:
+        x: -1
+        y: 0
+        z: -3
+      block-data: "chest[facing=south]"
+    - offset:
+        x: 1
+        y: 0
+        z: -3
+      block-data: "chest[facing=south]"
+    - offset:
+        x: 3
+        y: 0
+        z: -1
+      block-data: "chest[facing=west]"
+    - offset:
+        x: 3
+        y: 0
+        z: 1
+      block-data: "chest[facing=west]"
