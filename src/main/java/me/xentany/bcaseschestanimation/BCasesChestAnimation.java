@@ -6,6 +6,7 @@ import org.by1337.blib.util.SpacedNameKey;
 
 import java.io.File;
 
+@SuppressWarnings("unused") // That's the way to do it...
 public final class BCasesChestAnimation extends AbstractAddon {
 
   @Override
