@@ -13,10 +13,12 @@ settings:
   should-spawn-block-outlining: true
   block-outlining-particle: FLAME
   block-outlining-step: 0.1
+  spawn-sound: BLOCK_STONE_PLACE
   spawn-delay: 150
   click-wait: 10000
   idle: 6000
   before-end: 4000
+  end-sound: BLOCK_STONE_BREAK
   subtitle: '&cВыбери!'
   chests:
     - offset:
