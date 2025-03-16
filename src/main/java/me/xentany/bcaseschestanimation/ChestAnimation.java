@@ -87,7 +87,10 @@ public final class ChestAnimation extends AbstractAnimation {
 
       this.worldEditor.setType(position, chestParameters.blockData());
       this.placedChestPositions.add(position);
-      this.playSound(this.location, Sound.BLOCK_STONE_PLACE, 1, 1);
+
+      var sound = this.config.spawnSound;
+
+      this.playSound(this.location, sound == null ? Sound.BLOCK_STONE_PLACE : sound, 1, 1);
       this.sleep(this.config.spawnDelay);
     }
 
@@ -139,7 +142,10 @@ public final class ChestAnimation extends AbstractAnimation {
       var blockType = position.toBlock(this.world).getType();
 
       this.spawnParticle(Particle.BLOCK_CRACK, blockCenter, 30, blockType.createBlockData());
-      this.playSound(blockCenter, Sound.BLOCK_STONE_BREAK, 1, 1);
+
+      var sound = this.config.spawnSound;
+
+      this.playSound(blockCenter, sound == null ? Sound.BLOCK_STONE_BREAK : sound, 1, 1);
       this.worldEditor.setType(position, Material.AIR);
     });
 
@@ -209,10 +215,12 @@ public final class ChestAnimation extends AbstractAnimation {
                         boolean shouldSpawnBlockOutlining,
                         Particle blockOutliningParticle,
                         double blockOutliningStep,
+                        Sound spawnSound,
                         long spawnDelay,
                         long clickWait,
                         long idle,
                         long beforeEnd,
+                        Sound endSound,
                         String subtitle,
                         List<ChestParameters> chestParameters) {
 
@@ -234,6 +242,8 @@ public final class ChestAnimation extends AbstractAnimation {
                             .forGetter(Config::ringParticle),
                     Codec.DOUBLE.fieldOf("block-outlining-step")
                             .forGetter(Config::blockOutliningStep),
+                    XBukkitCodecs.SOUND.fieldOf("spawn-sound")
+                            .forGetter(Config::spawnSound),
                     Codec.LONG.fieldOf("spawn-delay")
                             .forGetter(Config::spawnDelay),
                     Codec.LONG.fieldOf("click-wait")
@@ -242,6 +252,8 @@ public final class ChestAnimation extends AbstractAnimation {
                             .forGetter(Config::idle),
                     Codec.LONG.fieldOf("before-end")
                             .forGetter(Config::beforeEnd),
+                    XBukkitCodecs.SOUND.fieldOf("end-sound")
+                            .forGetter(Config::endSound),
                     Codec.STRING.fieldOf("subtitle")
                             .forGetter(Config::subtitle),
                     ChestParameters.CODEC.listOf()
