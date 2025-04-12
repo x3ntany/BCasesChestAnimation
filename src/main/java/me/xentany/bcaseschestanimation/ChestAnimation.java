@@ -32,9 +32,9 @@ import java.util.function.BiConsumer;
 
 public final class ChestAnimation extends AbstractAnimation {
 
-  private final Set<Vec3i> placedChestPositions = new HashSet<>();
   private final Prize winner;
   private final Config config;
+  private final Set<Vec3i> placedChestPositions;
 
   private WorldEditor worldEditor;
 
@@ -54,12 +54,13 @@ public final class ChestAnimation extends AbstractAnimation {
             yamlValue.decode(Config.CODEC)
                     .getOrThrow()
                     .getFirst());
+    this.placedChestPositions = new HashSet<>();
   }
 
   @Override
   protected void onStart() {
     this.caseBlock.hideHologram();
-    this.worldEditor = new WorldEditor(world);
+    this.worldEditor = new WorldEditor(this.world);
   }
 
   @Override
@@ -175,7 +176,7 @@ public final class ChestAnimation extends AbstractAnimation {
     if (this.placedChestPositions.contains(position)) {
       event.setCancelled(true);
 
-      if (waitClick) {
+      if (this.waitClick) {
         this.selectedChestPosition = position;
         this.waitClick = false;
         this.update();
