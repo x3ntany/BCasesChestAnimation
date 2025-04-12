@@ -6,6 +6,8 @@ import org.bukkit.Particle;
 import org.by1337.blib.geom.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.stream.DoubleStream;
+
 public final class XParticleUtil extends ParticleUtil {
 
   public static void spawnRing(final @NotNull Vec3d center,
@@ -13,10 +15,12 @@ public final class XParticleUtil extends ParticleUtil {
                                final @NotNull Particle particle,
                                final double radius,
                                final double step) {
-    for (double angle = 0; angle < 2 * Math.PI; angle += step) {
-      double x = center.x + radius * Math.cos(angle);
-      double z = center.z + radius * Math.sin(angle);
+    DoubleStream.iterate(0, angle -> angle < 2 * Math.PI, angle -> angle + step)
+        .forEach(angle -> {
+      var x = center.x + radius * Math.cos(angle);
+      var z = center.z + radius * Math.sin(angle);
+
       animation.spawnParticle(particle, x, center.y, z, 0);
-    }
+    });
   }
 }
