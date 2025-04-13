@@ -9,9 +9,9 @@ import org.by1337.blib.geom.Vec3i;
 public record ChestParameters(Vec3i offset, BlockData blockData) {
 
   public static final Codec<ChestParameters> CODEC = RecordCodecBuilder.create(instance ->
-          instance.group(
-                  Vec3i.CODEC.fieldOf("offset").forGetter(ChestParameters::offset),
-                  BukkitCodecs.BLOCK_DATA.fieldOf("block-data").forGetter(ChestParameters::blockData)
-          ).apply(instance, ChestParameters::new)
+      instance.group(
+          Vec3i.CODEC.fieldOf("offset").forGetter(ChestParameters::offset),
+          BukkitCodecs.BLOCK_DATA.fieldOf("block-data").forGetter(ChestParameters::blockData)
+      ).apply(instance, ChestParameters::new)
   );
 }

@@ -18,9 +18,9 @@ public final class SafeEnumUtil {
     T apply(final @NotNull String name) throws IllegalArgumentException;
   }
 
-  public static <T> T getOrFallback(final @NotNull String name,
-                                    final @NotNull SafeValueOf<T> function,
-                                    final @NotNull T fallback) {
+  public static <T> @NotNull T getOrFallback(final @NotNull String name,
+                                             final @NotNull SafeValueOf<T> function,
+                                             final @NotNull T fallback) {
     try {
       return function.apply(name);
     } catch (final IllegalArgumentException e) {

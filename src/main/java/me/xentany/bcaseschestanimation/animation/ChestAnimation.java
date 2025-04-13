@@ -59,9 +59,9 @@ public final class ChestAnimation extends AbstractAnimation {
 
     this.winner = prizeSelector.getRandomPrize();
     this.config = config.get("settings", yamlValue ->
-            yamlValue.decode(Config.CODEC)
-                    .getOrThrow()
-                    .getFirst());
+        yamlValue.decode(Config.CODEC)
+            .getOrThrow()
+            .getFirst());
     this.ringParticle = SafeEnumUtil.getOrFallback(this.config.ringParticleName, Particle::valueOf, Particle.FLAME);
     this.blockOutliningParticle = SafeEnumUtil.getOrFallback(this.config.blockOutliningParticleName, Particle::valueOf, Particle.FLAME);
     this.spawnSound = SafeEnumUtil.getOrFallback(this.config.spawnSoundName, Sound::valueOf, Sound.BLOCK_STONE_PLACE);
@@ -87,7 +87,7 @@ public final class ChestAnimation extends AbstractAnimation {
         @Override
         public void run() {
           XParticleUtil.spawnRing(this.position, ChestAnimation.this,
-              ringParticle == null ? Particle.FLAME : ringParticle, this.radius, this.step);
+              ringParticle, this.radius, this.step);
         }
       }.timer().delay(6).start(this);
     }
@@ -105,7 +105,7 @@ public final class ChestAnimation extends AbstractAnimation {
 
       PLACED_CHEST_POSITIONS.put(this.player, positions);
 
-      this.playSound(this.location, this.spawnSound == null ? Sound.BLOCK_STONE_PLACE : this.spawnSound, 1, 1);
+      this.playSound(this.location, this.spawnSound, 1, 1);
       this.sleep(this.config.spawnDelay);
     }
 
@@ -130,7 +130,7 @@ public final class ChestAnimation extends AbstractAnimation {
         @Override
         public void run() {
           XParticleUtil.spawnBlockOutlining(this.position, ChestAnimation.this,
-                  blockOutliningParticle == null ? Particle.FLAME : blockOutliningParticle, this.step);
+              blockOutliningParticle, this.step);
         }
       }.timer().delay(6).start(this);
     }
@@ -138,14 +138,14 @@ public final class ChestAnimation extends AbstractAnimation {
     this.sleep(this.config.idle);
 
     chestsParameters.stream()
-            .map(chestParameters -> this.blockPos.add(chestParameters.offset()))
-            .filter(position -> !position.equals(this.selectedChestPosition))
-            .forEach(position -> {
-              var randomPrize = this.prizeSelector.getRandomPrize();
+        .map(chestParameters -> this.blockPos.add(chestParameters.offset()))
+        .filter(position -> !position.equals(this.selectedChestPosition))
+        .forEach(position -> {
+          var randomPrize = this.prizeSelector.getRandomPrize();
 
-              this.openChest(position);
-              this.trackEntity(randomPrize.createVirtualItem(position.toVec3d().add(0.5, 0.75, 0.5)));
-            });
+          this.openChest(position);
+          this.trackEntity(randomPrize.createVirtualItem(position.toVec3d().add(0.5, 0.75, 0.5)));
+        });
 
     this.sleep(this.config.beforeEnd);
   }
@@ -158,8 +158,7 @@ public final class ChestAnimation extends AbstractAnimation {
 
       this.world.playEffect(position.toLocation(this.world), Effect.STEP_SOUND, blockType, 32);
 
-      this.playSound(blockCenter, this.endSound == null ?
-          Sound.BLOCK_STONE_BREAK : this.endSound, 1, 1);
+      this.playSound(blockCenter, this.endSound, 1, 1);
       this.worldEditor.setType(position, Material.AIR);
     });
 
@@ -239,41 +238,41 @@ public final class ChestAnimation extends AbstractAnimation {
                         List<ChestParameters> chestParameters) {
 
     public static final Codec<Config> CODEC = RecordCodecBuilder.create(instance ->
-            instance.group(
-                    Codec.BOOL.fieldOf("should-spawn-ring")
-                            .forGetter(Config::shouldSpawnRing),
-                    Vec3d.CODEC.fieldOf("ring-offset")
-                            .forGetter(Config::ringOffset),
-                    Codec.STRING.fieldOf("ring-particle")
-                            .forGetter(Config::ringParticleName),
-                    Codec.DOUBLE.fieldOf("ring-radius")
-                            .forGetter(Config::ringRadius),
-                    Codec.DOUBLE.fieldOf("ring-step")
-                            .forGetter(Config::ringStep),
-                    Codec.BOOL.fieldOf("should-spawn-block-outlining")
-                            .forGetter(Config::shouldSpawnBlockOutlining),
-                    Codec.STRING.fieldOf("block-outlining-particle")
-                            .forGetter(Config::blockOutliningParticleName),
-                    Codec.DOUBLE.fieldOf("block-outlining-step")
-                            .forGetter(Config::blockOutliningStep),
-                    Codec.STRING.fieldOf("spawn-sound")
-                            .forGetter(Config::spawnSoundName),
-                    Codec.LONG.fieldOf("spawn-delay")
-                            .forGetter(Config::spawnDelay),
-                    Codec.LONG.fieldOf("click-wait")
-                            .forGetter(Config::clickWait),
-                    Codec.LONG.fieldOf("idle")
-                            .forGetter(Config::idle),
-                    Codec.LONG.fieldOf("before-end")
-                            .forGetter(Config::beforeEnd),
-                    Codec.STRING.fieldOf("end-sound")
-                            .forGetter(Config::endSoundName),
-                    Codec.STRING.fieldOf("subtitle")
-                            .forGetter(Config::subtitle),
-                    ChestParameters.CODEC.listOf()
-                            .fieldOf("chests")
-                            .forGetter(Config::chestParameters)
-            ).apply(instance, Config::new)
+        instance.group(
+            Codec.BOOL.fieldOf("should-spawn-ring")
+                .forGetter(Config::shouldSpawnRing),
+            Vec3d.CODEC.fieldOf("ring-offset")
+                .forGetter(Config::ringOffset),
+            Codec.STRING.fieldOf("ring-particle")
+                .forGetter(Config::ringParticleName),
+            Codec.DOUBLE.fieldOf("ring-radius")
+                .forGetter(Config::ringRadius),
+            Codec.DOUBLE.fieldOf("ring-step")
+                .forGetter(Config::ringStep),
+            Codec.BOOL.fieldOf("should-spawn-block-outlining")
+                .forGetter(Config::shouldSpawnBlockOutlining),
+            Codec.STRING.fieldOf("block-outlining-particle")
+                .forGetter(Config::blockOutliningParticleName),
+            Codec.DOUBLE.fieldOf("block-outlining-step")
+                .forGetter(Config::blockOutliningStep),
+            Codec.STRING.fieldOf("spawn-sound")
+                .forGetter(Config::spawnSoundName),
+            Codec.LONG.fieldOf("spawn-delay")
+                .forGetter(Config::spawnDelay),
+            Codec.LONG.fieldOf("click-wait")
+                .forGetter(Config::clickWait),
+            Codec.LONG.fieldOf("idle")
+                .forGetter(Config::idle),
+            Codec.LONG.fieldOf("before-end")
+                .forGetter(Config::beforeEnd),
+            Codec.STRING.fieldOf("end-sound")
+                .forGetter(Config::endSoundName),
+            Codec.STRING.fieldOf("subtitle")
+                .forGetter(Config::subtitle),
+            ChestParameters.CODEC.listOf()
+                .fieldOf("chests")
+                .forGetter(Config::chestParameters)
+        ).apply(instance, Config::new)
     );
   }
 }

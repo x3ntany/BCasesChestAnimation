@@ -17,10 +17,10 @@ public final class XParticleUtil extends ParticleUtil {
                                final double step) {
     DoubleStream.iterate(0, angle -> angle < 2 * Math.PI, angle -> angle + step)
         .forEach(angle -> {
-      var x = center.x + radius * Math.cos(angle);
-      var z = center.z + radius * Math.sin(angle);
+          var x = center.x + radius * Math.cos(angle);
+          var z = center.z + radius * Math.sin(angle);
 
-      animation.spawnParticle(particle, x, center.y, z, 0);
-    });
+          animation.spawnParticle(particle, x, center.y, z, 0);
+        });
   }
 }
