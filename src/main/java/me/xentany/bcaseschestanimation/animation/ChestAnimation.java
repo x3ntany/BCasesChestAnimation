@@ -1,4 +1,4 @@
-package me.xentany.bcaseschestanimation;
+package me.xentany.bcaseschestanimation.animation;
 
 import blib.com.mojang.serialization.Codec;
 import blib.com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -11,9 +11,10 @@ import dev.by1337.bc.task.AsyncTask;
 import dev.by1337.bc.world.WorldEditor;
 import dev.by1337.bc.yaml.CashedYamlContext;
 import dev.by1337.virtualentity.api.virtual.VirtualEntity;
+import me.xentany.bcaseschestanimation.particle.SafeEnumUtil;
 import me.xentany.bcaseschestanimation.serialization.ChestParameters;
 import me.xentany.bcaseschestanimation.particle.XParticleUtil;
-import me.xentany.bcaseschestanimation.serialization.XBukkitCodecs;
+import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -25,21 +26,28 @@ import org.by1337.blib.geom.Vec3d;
 import org.by1337.blib.geom.Vec3i;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 public final class ChestAnimation extends AbstractAnimation {
 
+  static final Map<Player, Set<Vec3i>> PLACED_CHEST_POSITIONS;
+
   private final Prize winner;
   private final Config config;
-  private final Set<Vec3i> placedChestPositions;
+  private final Particle ringParticle;
+  private final Particle blockOutliningParticle;
+  private final Sound spawnSound;
+  private final Sound endSound;
 
   private WorldEditor worldEditor;
 
   private volatile Vec3i selectedChestPosition;
-  private volatile boolean waitClick = false;
+  private volatile boolean waitClick;
+
+  static {
+    PLACED_CHEST_POSITIONS = new HashMap<>();
+  }
 
   public ChestAnimation(final @NotNull CaseBlock caseBlock,
                         final @NotNull AnimationContext context,
@@ -54,7 +62,11 @@ public final class ChestAnimation extends AbstractAnimation {
             yamlValue.decode(Config.CODEC)
                     .getOrThrow()
                     .getFirst());
-    this.placedChestPositions = new HashSet<>();
+    this.ringParticle = SafeEnumUtil.getOrFallback(this.config.ringParticleName, Particle::valueOf, Particle.FLAME);
+    this.blockOutliningParticle = SafeEnumUtil.getOrFallback(this.config.blockOutliningParticleName, Particle::valueOf, Particle.FLAME);
+    this.spawnSound = SafeEnumUtil.getOrFallback(this.config.spawnSoundName, Sound::valueOf, Sound.BLOCK_STONE_PLACE);
+    this.endSound = SafeEnumUtil.getOrFallback(this.config.endSoundName, Sound::valueOf, Sound.BLOCK_STONE_BREAK);
+    this.waitClick = false;
   }
 
   @Override
@@ -69,14 +81,13 @@ public final class ChestAnimation extends AbstractAnimation {
       new AsyncTask() {
 
         final Vec3d position = blockPos.toVec3d().add(config.ringOffset);
-        final Particle particle = config.ringParticle;
         final double radius = config.ringRadius;
         final double step = config.ringStep;
 
         @Override
         public void run() {
-          XParticleUtil.spawnRing(position, ChestAnimation.this,
-                  particle == null ? Particle.FLAME : particle, radius, step);
+          XParticleUtil.spawnRing(this.position, ChestAnimation.this,
+              ringParticle == null ? Particle.FLAME : ringParticle, this.radius, this.step);
         }
       }.timer().delay(6).start(this);
     }
@@ -87,11 +98,14 @@ public final class ChestAnimation extends AbstractAnimation {
       var position = this.blockPos.add(chestParameters.offset());
 
       this.worldEditor.setType(position, chestParameters.blockData());
-      this.placedChestPositions.add(position);
 
-      var sound = this.config.spawnSound;
+      var positions = PLACED_CHEST_POSITIONS.getOrDefault(this.player, new HashSet<>());
 
-      this.playSound(this.location, sound == null ? Sound.BLOCK_STONE_PLACE : sound, 1, 1);
+      positions.add(position);
+
+      PLACED_CHEST_POSITIONS.put(this.player, positions);
+
+      this.playSound(this.location, this.spawnSound == null ? Sound.BLOCK_STONE_PLACE : this.spawnSound, 1, 1);
       this.sleep(this.config.spawnDelay);
     }
 
@@ -100,23 +114,23 @@ public final class ChestAnimation extends AbstractAnimation {
     this.waitUpdate(this.config.clickWait);
 
     if (this.selectedChestPosition == null) {
-      this.selectedChestPosition = this.placedChestPositions.iterator().next();
+      this.selectedChestPosition = PLACED_CHEST_POSITIONS.get(this.player).iterator().next();
     }
 
     this.openChest(this.selectedChestPosition);
     this.trackEntity(this.winner.createVirtualItem(this.selectedChestPosition.toVec3d().add(0.5, 0.75, 0.5)));
 
     if (this.config.shouldSpawnBlockOutlining) {
+
       new AsyncTask() {
 
         final Vec3d position = selectedChestPosition.toVec3d().add(0.5, 0, 0.5);
-        final Particle particle = config.blockOutliningParticle;
         final double step = config.blockOutliningStep;
 
         @Override
         public void run() {
           XParticleUtil.spawnBlockOutlining(this.position, ChestAnimation.this,
-                  particle == null ? Particle.FLAME : particle, step);
+                  blockOutliningParticle == null ? Particle.FLAME : blockOutliningParticle, this.step);
         }
       }.timer().delay(6).start(this);
     }
@@ -138,19 +152,18 @@ public final class ChestAnimation extends AbstractAnimation {
 
   @Override
   protected void onEnd() {
-    this.placedChestPositions.forEach(position -> {
+    PLACED_CHEST_POSITIONS.get(this.player).forEach(position -> {
       var blockCenter = position.toVec3d().add(0.5, 0.5, 0.5);
       var blockType = position.toBlock(this.world).getType();
 
-      this.spawnParticle(Particle.BLOCK_CRACK, blockCenter, 30, blockType.createBlockData());
+      this.world.playEffect(position.toLocation(this.world), Effect.STEP_SOUND, blockType, 32);
 
-      var sound = this.config.spawnSound;
-
-      this.playSound(blockCenter, sound == null ? Sound.BLOCK_STONE_BREAK : sound, 1, 1);
+      this.playSound(blockCenter, this.endSound == null ?
+          Sound.BLOCK_STONE_BREAK : this.endSound, 1, 1);
       this.worldEditor.setType(position, Material.AIR);
     });
 
-    this.placedChestPositions.clear();
+    PLACED_CHEST_POSITIONS.remove(this.player);
 
     if (this.worldEditor != null) {
       this.worldEditor.close();
@@ -173,7 +186,7 @@ public final class ChestAnimation extends AbstractAnimation {
 
     var position = new Vec3i(block);
 
-    if (this.placedChestPositions.contains(position)) {
+    if (PLACED_CHEST_POSITIONS.get(this.player).contains(position)) {
       event.setCancelled(true);
 
       if (this.waitClick) {
@@ -210,18 +223,18 @@ public final class ChestAnimation extends AbstractAnimation {
 
   private record Config(boolean shouldSpawnRing,
                         Vec3d ringOffset,
-                        Particle ringParticle,
+                        String ringParticleName,
                         double ringRadius,
                         double ringStep,
                         boolean shouldSpawnBlockOutlining,
-                        Particle blockOutliningParticle,
+                        String blockOutliningParticleName,
                         double blockOutliningStep,
-                        Sound spawnSound,
+                        String spawnSoundName,
                         long spawnDelay,
                         long clickWait,
                         long idle,
                         long beforeEnd,
-                        Sound endSound,
+                        String endSoundName,
                         String subtitle,
                         List<ChestParameters> chestParameters) {
 
@@ -231,20 +244,20 @@ public final class ChestAnimation extends AbstractAnimation {
                             .forGetter(Config::shouldSpawnRing),
                     Vec3d.CODEC.fieldOf("ring-offset")
                             .forGetter(Config::ringOffset),
-                    XBukkitCodecs.PARTICLE.fieldOf("ring-particle")
-                            .forGetter(Config::ringParticle),
+                    Codec.STRING.fieldOf("ring-particle")
+                            .forGetter(Config::ringParticleName),
                     Codec.DOUBLE.fieldOf("ring-radius")
                             .forGetter(Config::ringRadius),
                     Codec.DOUBLE.fieldOf("ring-step")
                             .forGetter(Config::ringStep),
                     Codec.BOOL.fieldOf("should-spawn-block-outlining")
                             .forGetter(Config::shouldSpawnBlockOutlining),
-                    XBukkitCodecs.PARTICLE.fieldOf("block-outlining-particle")
-                            .forGetter(Config::ringParticle),
+                    Codec.STRING.fieldOf("block-outlining-particle")
+                            .forGetter(Config::blockOutliningParticleName),
                     Codec.DOUBLE.fieldOf("block-outlining-step")
                             .forGetter(Config::blockOutliningStep),
-                    XBukkitCodecs.SOUND.fieldOf("spawn-sound")
-                            .forGetter(Config::spawnSound),
+                    Codec.STRING.fieldOf("spawn-sound")
+                            .forGetter(Config::spawnSoundName),
                     Codec.LONG.fieldOf("spawn-delay")
                             .forGetter(Config::spawnDelay),
                     Codec.LONG.fieldOf("click-wait")
@@ -253,8 +266,8 @@ public final class ChestAnimation extends AbstractAnimation {
                             .forGetter(Config::idle),
                     Codec.LONG.fieldOf("before-end")
                             .forGetter(Config::beforeEnd),
-                    XBukkitCodecs.SOUND.fieldOf("end-sound")
-                            .forGetter(Config::endSound),
+                    Codec.STRING.fieldOf("end-sound")
+                            .forGetter(Config::endSoundName),
                     Codec.STRING.fieldOf("subtitle")
                             .forGetter(Config::subtitle),
                     ChestParameters.CODEC.listOf()
