@@ -12,6 +12,7 @@ import dev.by1337.bc.world.WorldEditor;
 import dev.by1337.bc.yaml.CashedYamlContext;
 import dev.by1337.virtualentity.api.virtual.VirtualEntity;
 import me.xentany.bcaseschestanimation.particle.SafeEnumUtil;
+import me.xentany.bcaseschestanimation.particle.SoundUtil;
 import me.xentany.bcaseschestanimation.serialization.ChestParameters;
 import me.xentany.bcaseschestanimation.particle.XParticleUtil;
 import org.bukkit.Effect;
@@ -31,7 +32,7 @@ import java.util.function.BiConsumer;
 
 public final class ChestAnimation extends AbstractAnimation {
 
-  static final Map<Player, Set<Vec3i>> PLACED_CHEST_POSITIONS;
+  static final Map<ChestAnimation, Set<Vec3i>> PLACED_CHEST_POSITIONS;
 
   private final Prize winner;
   private final Config config;
@@ -64,8 +65,8 @@ public final class ChestAnimation extends AbstractAnimation {
             .getFirst());
     this.ringParticle = SafeEnumUtil.getOrFallback(this.config.ringParticleName, Particle::valueOf, Particle.FLAME);
     this.blockOutliningParticle = SafeEnumUtil.getOrFallback(this.config.blockOutliningParticleName, Particle::valueOf, Particle.FLAME);
-    this.spawnSound = SafeEnumUtil.getOrFallback(this.config.spawnSoundName, Sound::valueOf, Sound.BLOCK_STONE_PLACE);
-    this.endSound = SafeEnumUtil.getOrFallback(this.config.endSoundName, Sound::valueOf, Sound.BLOCK_STONE_BREAK);
+    this.spawnSound = SafeEnumUtil.getOrFallback(this.config.spawnSoundName, SoundUtil::getSound, Sound.BLOCK_STONE_PLACE);
+    this.endSound = SafeEnumUtil.getOrFallback(this.config.endSoundName, SoundUtil::getSound, Sound.BLOCK_STONE_BREAK);
     this.waitClick = false;
   }
 
@@ -99,11 +100,11 @@ public final class ChestAnimation extends AbstractAnimation {
 
       this.worldEditor.setType(position, chestParameters.blockData());
 
-      var positions = PLACED_CHEST_POSITIONS.getOrDefault(this.player, new HashSet<>());
+      var positions = PLACED_CHEST_POSITIONS.getOrDefault(this, new HashSet<>());
 
       positions.add(position);
 
-      PLACED_CHEST_POSITIONS.put(this.player, positions);
+      PLACED_CHEST_POSITIONS.put(this, positions);
 
       this.playSound(this.location, this.spawnSound, 1, 1);
       this.sleep(this.config.spawnDelay);
@@ -114,7 +115,7 @@ public final class ChestAnimation extends AbstractAnimation {
     this.waitUpdate(this.config.clickWait);
 
     if (this.selectedChestPosition == null) {
-      this.selectedChestPosition = PLACED_CHEST_POSITIONS.get(this.player).iterator().next();
+      this.selectedChestPosition = PLACED_CHEST_POSITIONS.get(this).iterator().next();
     }
 
     this.openChest(this.selectedChestPosition);
@@ -152,7 +153,7 @@ public final class ChestAnimation extends AbstractAnimation {
 
   @Override
   protected void onEnd() {
-    PLACED_CHEST_POSITIONS.get(this.player).forEach(position -> {
+    PLACED_CHEST_POSITIONS.get(this).forEach(position -> {
       var blockCenter = position.toVec3d().add(0.5, 0.5, 0.5);
       var blockType = position.toBlock(this.world).getType();
 
@@ -162,7 +163,7 @@ public final class ChestAnimation extends AbstractAnimation {
       this.worldEditor.setType(position, Material.AIR);
     });
 
-    PLACED_CHEST_POSITIONS.remove(this.player);
+    PLACED_CHEST_POSITIONS.remove(this);
 
     if (this.worldEditor != null) {
       this.worldEditor.close();
@@ -185,7 +186,7 @@ public final class ChestAnimation extends AbstractAnimation {
 
     var position = new Vec3i(block);
 
-    if (PLACED_CHEST_POSITIONS.get(this.player).contains(position)) {
+    if (PLACED_CHEST_POSITIONS.get(this).contains(position)) {
       event.setCancelled(true);
 
       if (this.waitClick) {
