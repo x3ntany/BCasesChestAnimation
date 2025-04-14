@@ -11,7 +11,7 @@ import dev.by1337.bc.task.AsyncTask;
 import dev.by1337.bc.world.WorldEditor;
 import dev.by1337.bc.yaml.CashedYamlContext;
 import dev.by1337.virtualentity.api.virtual.VirtualEntity;
-import me.xentany.bcaseschestanimation.particle.SafeEnumUtil;
+import me.xentany.bcaseschestanimation.particle.SafeFunctionUtil;
 import me.xentany.bcaseschestanimation.particle.SoundUtil;
 import me.xentany.bcaseschestanimation.serialization.ChestParameters;
 import me.xentany.bcaseschestanimation.particle.XParticleUtil;
@@ -63,10 +63,10 @@ public final class ChestAnimation extends AbstractAnimation {
         yamlValue.decode(Config.CODEC)
             .getOrThrow()
             .getFirst());
-    this.ringParticle = SafeEnumUtil.getOrFallback(this.config.ringParticleName, Particle::valueOf, Particle.FLAME);
-    this.blockOutliningParticle = SafeEnumUtil.getOrFallback(this.config.blockOutliningParticleName, Particle::valueOf, Particle.FLAME);
-    this.spawnSound = SafeEnumUtil.getOrFallback(this.config.spawnSoundName, SoundUtil::getSound, Sound.BLOCK_STONE_PLACE);
-    this.endSound = SafeEnumUtil.getOrFallback(this.config.endSoundName, SoundUtil::getSound, Sound.BLOCK_STONE_BREAK);
+    this.ringParticle = SafeFunctionUtil.getOrFallback(this.config.ringParticleName, Particle::valueOf, Particle.FLAME);
+    this.blockOutliningParticle = SafeFunctionUtil.getOrFallback(this.config.blockOutliningParticleName, Particle::valueOf, Particle.FLAME);
+    this.spawnSound = SafeFunctionUtil.getOrFallback(this.config.spawnSoundName, SoundUtil::getSound, Sound.BLOCK_STONE_PLACE);
+    this.endSound = SafeFunctionUtil.getOrFallback(this.config.endSoundName, SoundUtil::getSound, Sound.BLOCK_STONE_BREAK);
     this.waitClick = false;
   }
 

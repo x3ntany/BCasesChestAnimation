@@ -3,13 +3,13 @@ package me.xentany.bcaseschestanimation.particle;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-public final class SafeEnumUtil {
+public final class SafeFunctionUtil {
 
   private static Logger logger;
 
   public static void loadLogger(final @NotNull Logger logger) {
-    if (SafeEnumUtil.logger == null) {
-      SafeEnumUtil.logger = logger;
+    if (SafeFunctionUtil.logger == null) {
+      SafeFunctionUtil.logger = logger;
     }
   }
 
@@ -23,8 +23,8 @@ public final class SafeEnumUtil {
                                              final @NotNull T fallback) {
     try {
       return function.apply(name);
-    } catch (final Exception e) {
-      logger.error("Invalid value for {}: {}", name, e.getMessage());
+    } catch (final Exception exception) {
+      logger.error("Invalid value for {}: {}", name, exception.getMessage());
       return fallback;
     }
   }

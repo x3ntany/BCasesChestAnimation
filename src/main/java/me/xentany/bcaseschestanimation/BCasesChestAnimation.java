@@ -4,7 +4,7 @@ import dev.by1337.bc.addon.AbstractAddon;
 import dev.by1337.bc.animation.AnimationRegistry;
 import me.xentany.bcaseschestanimation.animation.ChestAnimation;
 import me.xentany.bcaseschestanimation.animation.ChestAnimationListener;
-import me.xentany.bcaseschestanimation.particle.SafeEnumUtil;
+import me.xentany.bcaseschestanimation.particle.SafeFunctionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.by1337.blib.util.SpacedNameKey;
@@ -22,7 +22,7 @@ public final class BCasesChestAnimation extends AbstractAddon {
 
     this.saveResourceToFile("chest.yml", file);
 
-    SafeEnumUtil.loadLogger(this.getLogger());
+    SafeFunctionUtil.loadLogger(this.getLogger());
 
     AnimationRegistry.INSTANCE.register("xcommunity:chest", ChestAnimation::new);
 

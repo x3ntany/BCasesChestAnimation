@@ -9,7 +9,7 @@ public final class SoundUtil {
       throws NoSuchFieldException, IllegalAccessException {
     try {
       return Sound.valueOf(soundName);
-    } catch (final IllegalArgumentException e) {
+    } catch (final Exception exception) {
       var field = Sound.class.getField(soundName);
 
       if (Sound.class.isAssignableFrom(field.getType())) {
