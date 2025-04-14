@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>me.xentany</groupId>
   <artifactId>BCasesChestAnimation</artifactId>
-  <version>1.0.3-2</version>
+  <version>1.0.4</version>
   <packaging>jar</packaging>
   <name>BCasesChestAnimation</name>
   <properties>
@@ -35,6 +35,9 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+        </configuration>
       </plugin>
     </plugins>
     <resources>
