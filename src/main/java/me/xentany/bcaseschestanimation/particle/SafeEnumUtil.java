@@ -15,7 +15,7 @@ public final class SafeEnumUtil {
 
   @FunctionalInterface
   public interface SafeValueOf<T> {
-    T apply(final @NotNull String name) throws IllegalArgumentException;
+    T apply(final @NotNull String name) throws Exception;
   }
 
   public static <T> @NotNull T getOrFallback(final @NotNull String name,
@@ -23,7 +23,7 @@ public final class SafeEnumUtil {
                                              final @NotNull T fallback) {
     try {
       return function.apply(name);
-    } catch (final IllegalArgumentException e) {
+    } catch (final Exception e) {
       logger.error("Invalid value for {}: {}", name, e.getMessage());
       return fallback;
     }
